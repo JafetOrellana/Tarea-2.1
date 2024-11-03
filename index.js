@@ -50,11 +50,11 @@ app.get("/tareas/:id", (req, res) => {
     const tarea = tareas.find((tarea) => tarea.id === id);
 
     if (!id) {
-        res.status(404).json({ error: "El id debe ser numerico" });
+    return    res.status(404).json({ error: "El id debe ser numerico" });
     }
 
     if (!tarea) {
-        res.status(404).json({ error: "Tarea no encontrada" });
+    return    res.status(404).json({ error: "Tarea no encontrada" });
     }
 
     res.json(tarea);
@@ -71,7 +71,7 @@ app.post("/tareas", (req, res) => {
     }
 
     if (!success) {
-        res.status(400).json({
+        return res.status(400).json({
             message: JSON.parse(error.message)
         })
     }
@@ -96,7 +96,7 @@ app.put("/tareas/:id", (req, res) => {
     const {success, error} = validatePartialTareaSchema(data);
 
     if (!success) {
-        res.status(400).json({
+        return res.status(400).json({
             message: JSON.parse(error.message)
         })
     }
@@ -106,10 +106,14 @@ app.put("/tareas/:id", (req, res) => {
     const index = tareas.findIndex((tarea) => tarea.id == id);
 
     if (index == -1) {
-        res.status(404).json({ error: "Tarea no encontrada" });
+       return res.status(404).json({ error: "Tarea no encontrada" });
     }
 
-    tareas[index] = { ...tareas[index], ...data };
+
+    const tareaActualizada = { ...tareas[index], ...data };
+    tareas[index] = { ...tareaActualizada};
+
+    
 
     res.json(tareas[index]);
 });
@@ -122,12 +126,12 @@ app.delete("/tareas/:id", (req, res) => {
     const index = tareas.findIndex((tarea) => tarea.id == id);
 
     if (index == -1) {
-        res.status(404).json({ error: "Tarea no encontrada" });
+        return res.status(404).json({ error: "Tarea no encontrada" });
     }
 
     tareas.splice(index, 1);
 
-    res.json(tareas);
+    return res.json(tareas);
 });
 
 
