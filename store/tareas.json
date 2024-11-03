@@ -1,0 +1,9 @@
+[
+    {
+        "id": 1,
+        "titulo": "Tarea 1",
+        "descripcion": "Realizar la entrega de la tarea 2.1 de la clase de disenio digital",
+        "completada": false,
+        "fecha_creacion": "2024-11-02T23:10:45.136Z"
+    }
+]
