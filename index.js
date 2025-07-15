@@ -36,13 +36,13 @@ app.disable("x-powered-by");
 app.use(json());
 
 const PORT = process.env.PORT || 3000;
-
+/*
 app.get("/tareas", (req, res) => {
     res.
         header('Content-Type', 'application/json')
         .status(200)
         .json(tareas);
-});
+});*/
 
 app.get("/tarea", (req, res) => {
     res.
