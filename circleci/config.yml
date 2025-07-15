@@ -1,0 +1,76 @@
+# Versión de la configuración de CircleCI. Usamos la 2.1 para acceder a todas las características modernas.
+version: 2.1
+
+# Sección de Orbs:
+# Los Orbs son paquetes reutilizables de configuración. Aquí usamos el Orb oficial de Node.js.
+# Esto nos simplifica la vida al proporcionar ejecutores y comandos predefinidos para Node.js.
+orbs:
+  node: circleci/node@5.0.0 # Usamos la versión 5.0.0 del Orb de Node.js
+
+# Sección de Jobs:
+# Aquí definimos las unidades de trabajo individuales que se ejecutarán.
+jobs:
+  # Job 1: build_and_cache_dependencies
+  # Este job se encarga de instalar las dependencias del proyecto y de guardarlas en caché.
+  build_and_cache_dependencies:
+    executor: node/default # Usamos el ejecutor predefinido del Orb de Node.js (un contenedor Docker con Node.js)
+    steps:
+      - checkout # Paso 1: Descargar el código fuente del repositorio
+      
+      # Paso 2: Restaurar la caché de dependencias
+      # La clave de la caché se basa en el checksum del package.json.
+      # Si el package.json cambia, la caché se invalida y se crea una nueva.
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }} # Clave principal basada en el hash del package.json
+            - v1-dependencies- # Clave de respaldo si la principal no se encuentra
+
+      # Paso 3: Instalar las dependencias de Node.js
+      # Usamos el comando 'install-packages' del Orb de Node.js, que internamente ejecuta 'npm install'.
+      - node/install-packages:
+          pkg-manager: npm # Especificamos que usamos npm como gestor de paquetes
+
+      # Paso 4: Guardar las dependencias instaladas en caché
+      # Esto acelera las ejecuciones futuras si el package.json no ha cambiado.
+      - save_cache:
+          paths:
+            - ~/project/node_modules # Ruta del directorio a cachear
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+      # Paso 5: Persistir el directorio node_modules para que otros jobs puedan acceder a él
+      # Esto es útil si un job posterior necesita las dependencias instaladas.
+      - persist_to_workspace:
+          root: ~/project # Directorio raíz del proyecto
+          paths:
+            - node_modules # Guardamos el directorio node_modules
+
+  # Job 2: run_api_tests
+  # Este job se encarga de ejecutar las pruebas de la API.
+  run_api_tests:
+    executor: node/default # Usamos el mismo ejecutor de Node.js
+    steps:
+      - checkout # Paso 1: Descargar el código fuente
+      
+      # Paso 2: Adjuntar el workspace del job anterior (donde están las dependencias cacheadas)
+      - attach_workspace:
+          at: ~/project # Adjuntamos el workspace en la raíz del proyecto
+
+      # Paso 3: Ejecutar las pruebas
+      # NOTA: Tu package.json debe tener un script 'test' definido (ej. "test": "mocha").
+      # Si no tienes pruebas aún, este paso fallará o no hará nada útil.
+      - run:
+          name: Ejecutar Pruebas de la API
+          command: npm test # Ejecuta el script 'test' definido en package.json
+
+# Sección de Workflows:
+# Aquí definimos la orquestación de los jobs.
+workflows:
+  # Workflow 1: build_test_flow
+  # Este workflow define el flujo de CI.
+  build_test_flow:
+    jobs:
+      - build_and_cache_dependencies # Paso 1: Instalar y cachear dependencias
+
+      - run_api_tests: # Paso 2: Ejecutar pruebas
+          requires: # Este job requiere que 'build_and_cache_dependencies' haya terminado exitosamente
+            - build_and_cache_dependencies
