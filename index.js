@@ -44,6 +44,14 @@ app.get("/tareas", (req, res) => {
         .json(tareas);
 });
 
+app.get("/tarea", (req, res) => {
+    res.
+        header('Content-Type', 'application/json')
+        .status(200)
+        .json({info:'El endpoint correcto es ta'});
+});
+
+
 app.get("/tareas/:id", (req, res) => {
     const id = Number(req.params.id);
     
