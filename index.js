@@ -135,6 +135,16 @@ app.delete("/tareas/:id", (req, res) => {
 });
 
 
-app.listen(PORT, () => {
-    console.log(`Servidor escuchando en el puerto ${PORT}`);
-});
+// ... (todo tu código actual de Express) ...
+
+// Al final de tu archivo principal (ej. app.js o index.js)
+// Exporta la instancia de la aplicación para que los tests puedan importarla
+export default app;
+
+// La línea de app.listen() solo debe ejecutarse si el archivo se ejecuta directamente,
+// no cuando es importado por los tests.
+if (process.env.NODE_ENV !== 'test') { // Solo escucha si no estamos en entorno de pruebas
+    app.listen(PORT, () => {
+        console.log(`Servidor escuchando en el puerto ${PORT}`);
+    });
+}
