@@ -1,32 +1,38 @@
-# This config was automatically generated from your source code
-# Stacks detected: deps:node:.
 version: 2.1
 orbs:
-  node: circleci/node@5
+  node: circleci/node@5.0.0
 jobs:
-  test-node:
-    # Install node dependencies and run tests
+  build_and_cache_dependencies:
     executor: node/default
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
       - node/install-packages:
           pkg-manager: npm
-      - run:
-          name: Run tests
-          command: echo \"No test specified in package.json\"
-  deploy:
-    # This is an example deploy job, not actually used by the workflow
-    docker:
-      - image: cimg/base:stable
+      - save_cache:
+          paths:
+            - ~/project/node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - node_modules
+  run_api_tests:
+    executor: node/default
     steps:
-      # Replace this with steps to deploy to users
+      - checkout
+      - attach_workspace:
+          at: ~/project
       - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
+          name: Ejecutar Pruebas de la API
+          command: npm test
 workflows:
-  build-and-test:
+  build_test_flow:
     jobs:
-      - test-node
-    # - deploy:
-    #     requires:
-    #       - test-node
+      - build_and_cache_dependencies
+      - run_api_tests:
+          requires:
+            - build_and_cache_dependencies
